@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nake the Conductor — Intelligence Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    color: #e0e0e8;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Top Bar */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, #0d0d14 0%, #0a0a0f 100%);
+    border-bottom: 1px solid #1a1a2e;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(12px);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .topbar-logo {
+    width: 10px;
+    height: 10px;
+    background: #00d4ff;
+    border-radius: 50%;
+    box-shadow: 0 0 12px #00d4ff88;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px #00d4ff88; }
+    50% { box-shadow: 0 0 24px #00d4ffcc; }
+  }
+
+  .topbar-title {
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #00d4ff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  .status-counts {
+    display: flex;
+    gap: 12px;
+  }
+
+  .status-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot-green { background: #00ff88; box-shadow: 0 0 6px #00ff8866; }
+  .dot-yellow { background: #ffcc00; box-shadow: 0 0 6px #ffcc0066; }
+  .dot-red { background: #ff4466; box-shadow: 0 0 6px #ff446666; }
+  .dot-gray { background: #333; }
+
+  /* Top Insights */
+  .insights-section {
+    padding: 20px 24px 8px;
+  }
+
+  .insights-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .insights-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: #00d4ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .insights-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 16px;
+    background: linear-gradient(180deg, #00d4ff, #00ff88);
+    border-radius: 2px;
+  }
+
+  .btn-analyze {
+    background: linear-gradient(135deg, #00d4ff22, #00ff8811);
+    border: 1px solid #00d4ff33;
+    border-radius: 8px;
+    color: #00d4ff;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-analyze:hover {
+    background: linear-gradient(135deg, #00d4ff33, #00ff8822);
+    border-color: #00d4ff66;
+    box-shadow: 0 0 16px #00d4ff22;
+  }
+
+  .btn-analyze.running {
+    color: #ffcc00;
+    border-color: #ffcc0044;
+    cursor: default;
+    animation: glow-run 1.5s ease-in-out infinite;
+  }
+
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .insight-card {
+    background: linear-gradient(135deg, #12121a 0%, #0f1520 100%);
+    border: 1px solid #1a2a3e;
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.3s;
+  }
+
+  .insight-card:hover {
+    border-color: #00d4ff44;
+    box-shadow: 0 0 24px #00d4ff11;
+  }
+
+  .insight-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #00d4ff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+
+  .insight-headline {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e8f0;
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+
+  .insight-analysis {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.6;
+  }
+
+  .insight-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+
+  .tag-action { background: #00d4ff18; color: #00d4ff; border: 1px solid #00d4ff33; }
+  .tag-watch { background: #ffcc0018; color: #ffcc00; border: 1px solid #ffcc0033; }
+  .tag-threat { background: #ff446618; color: #ff4466; border: 1px solid #ff446633; }
+
+  .insights-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    color: #333;
+    font-style: italic;
+    font-size: 13px;
+  }
+
+  .insights-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    color: #ffcc00;
+    font-size: 13px;
+    animation: glow-run 1.5s ease-in-out infinite;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 16px;
+    padding: 24px;
+  }
+
+  /* Section headers — collapsible */
+  .section-header {
+    padding: 10px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 8px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .section-header:hover { color: #666; }
+
+  .section-toggle {
+    font-size: 12px;
+    transition: transform 0.2s;
+  }
+
+  .section-header.collapsed .section-toggle { transform: rotate(-90deg); }
+
+  /* Cards */
+  .card {
+    background: #12121a;
+    border: 1px solid #1a1a2e;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .card:hover {
+    border-color: #00d4ff33;
+    box-shadow: 0 0 20px #00d4ff11;
+  }
+
+  .card-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1a1a2e;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-header:hover { background: #1a1a2e44; }
+
+  .card-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+  }
+
+  .card-title {
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #555;
+  }
+
+  /* Section collapse hides the grid */
+  .grid.collapsed { display: none; }
+
+  /* Run button */
+  .btn-run {
+    background: none;
+    border: 1px solid #1a1a2e;
+    border-radius: 6px;
+    color: #00d4ff;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-run:hover {
+    background: #00d4ff18;
+    border-color: #00d4ff44;
+  }
+
+  .btn-run.running {
+    color: #ffcc00;
+    border-color: #ffcc0044;
+    cursor: default;
+    animation: glow-run 1.5s ease-in-out infinite;
+  }
+
+  .btn-run.running:hover {
+    background: none;
+  }
+
+  @keyframes glow-run {
+    0%, 100% { box-shadow: 0 0 4px #ffcc0022; }
+    50% { box-shadow: 0 0 12px #ffcc0044; }
+  }
+
+  .card.is-running {
+    border-color: #ffcc0033;
+    box-shadow: 0 0 15px #ffcc0011;
+  }
+
+  .card-body {
+    padding: 16px 18px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .card-body::-webkit-scrollbar { width: 4px; }
+  .card-body::-webkit-scrollbar-track { background: transparent; }
+  .card-body::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  /* Markdown content styles */
+  .card-body h1, .card-body h2, .card-body h3 {
+    color: #00d4ff;
+    margin: 16px 0 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .card-body h1:first-child, .card-body h2:first-child, .card-body h3:first-child {
+    margin-top: 0;
+  }
+
+  .card-body strong { color: #e8e8f0; }
+
+  .card-body ul, .card-body ol {
+    padding-left: 20px;
+    margin: 8px 0;
+  }
+
+  .card-body li { margin: 4px 0; }
+
+  .card-body a {
+    color: #00d4ff;
+    text-decoration: none;
+  }
+
+  .card-body a:hover { text-decoration: underline; }
+
+  .card-body code {
+    background: #1a1a2e;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #00ff88;
+  }
+
+  .card-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 12px;
+  }
+
+  .card-body th, .card-body td {
+    padding: 6px 10px;
+    border: 1px solid #1a1a2e;
+    text-align: left;
+  }
+
+  .card-body th { background: #1a1a2e; color: #00d4ff; }
+
+  .card-body hr {
+    border: none;
+    border-top: 1px solid #1a1a2e;
+    margin: 12px 0;
+  }
+
+  /* Empty state */
+  .empty-state {
+    color: #333;
+    font-style: italic;
+    text-align: center;
+    padding: 30px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo"></div>
+    <div class="topbar-title">Nake the Conductor</div>
+  </div>
+  <div class="topbar-right">
+    <div class="status-counts" id="statusCounts"></div>
+    <div id="clock"></div>
+  </div>
+</div>
+
+<!-- Top Insights -->
+<div class="insights-section">
+  <div class="insights-header">
+    <div class="insights-title">Top Strategic Insights</div>
+    <button class="btn-analyze" id="btnAnalyze" onclick="analyzeInsights()">
+      <span>&#9670;</span> Analyze Intel
+    </button>
+  </div>
+  <div class="insights-grid" id="insightsGrid">
+    <div class="insights-empty">Run intel scans first, then click "Analyze Intel" to surface top insights.</div>
+  </div>
+</div>
+
+<div class="section-header" id="header-daily" onclick="toggleSection('daily')">
+  <span class="section-toggle">&#9660;</span>
+  Daily Briefings
+</div>
+<div class="grid" id="dailyGrid"></div>
+
+<div class="section-header" id="header-intel" onclick="toggleSection('intel')">
+  <span class="section-toggle">&#9660;</span>
+  Strategic Intelligence
+</div>
+<div class="grid" id="intelGrid"></div>
+
+<div class="section-header" id="header-weekly" onclick="toggleSection('weekly')">
+  <span class="section-toggle">&#9660;</span>
+  Weekly Reports
+</div>
+<div class="grid" id="weeklyGrid"></div>
+
+<script>
+const WIDGETS = {
+  daily: [
+    { id: 'gmail-digest', title: 'Gmail Digest', icon: '&#128231;', file: 'gmail-digest.json' },
+    { id: 'gchat-digest', title: 'Google Chat', icon: '&#128172;', file: 'gchat-digest.json' },
+    { id: 'clickup-morning', title: 'ClickUp Morning', icon: '&#128203;', file: 'clickup-morning.json' },
+    { id: 'clickup-eod', title: 'ClickUp EOD', icon: '&#128202;', file: 'clickup-eod.json' },
+  ],
+  intel: [
+    { id: 'intel-focused', title: 'Intel \u2014 Focused', icon: '&#127919;', file: 'intel-focused.json' },
+    { id: 'intel-japan', title: 'Intel \u2014 Japan', icon: '&#127471;&#127477;', file: 'intel-japan.json' },
+    { id: 'intel-broad', title: 'Intel \u2014 Broad', icon: '&#127760;', file: 'intel-broad.json' },
+  ],
+  weekly: [
+    { id: 'competitor-dive', title: 'Competitor Deep-Dive', icon: '&#128269;', file: 'competitor-dive.json' },
+    { id: 'producthunt-hn', title: 'PH / HN Radar', icon: '&#128640;', file: 'producthunt-hn.json' },
+    { id: 'research-patents', title: 'Research & Patents', icon: '&#128196;', file: 'research-patents.json' },
+    { id: 'conference-events', title: 'Events Radar', icon: '&#128197;', file: 'conference-events.json' },
+    { id: 'weekly-rollup', title: 'Weekly Roll-Up', icon: '&#128204;', file: 'weekly-rollup.json' },
+  ]
+};
+
+// Intel widget IDs — only these feed into top insights
+const INTEL_WIDGETS = ['intel-focused', 'intel-japan', 'intel-broad', 'competitor-dive', 'producthunt-hn', 'research-patents', 'conference-events', 'weekly-rollup'];
+
+const DATA_DIR = 'data/dashboard/';
+let widgetData = {};
+let insightsData = null;
+let insightsAnalyzing = false;
+
+// Track collapsed sections
+let collapsedSections = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+
+function getFreshness(updated) {
+  if (!updated) return 'none';
+  const hours = (Date.now() - new Date(updated).getTime()) / 3600000;
+  if (hours < 4) return 'green';
+  if (hours < 24) return 'yellow';
+  return 'red';
+}
+
+function formatTime(iso) {
+  if (!iso) return 'No data yet';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return `${diffDays}d ago`;
+}
+
+let runningTasks = new Set();
+
+function renderCard(widget) {
+  const data = widgetData[widget.id] || {};
+  const freshness = getFreshness(data.updated);
+  const content = data.content || '';
+  const isRunning = runningTasks.has(widget.id);
+  return `
+    <div class="card ${isRunning ? 'is-running' : ''}" id="card-${widget.id}">
+      <div class="card-header">
+        <div class="card-header-left">
+          <span class="card-icon">${widget.icon}</span>
+          <span class="card-title">${widget.title}</span>
+        </div>
+        <div class="card-meta">
+          <button class="btn-run ${isRunning ? 'running' : ''}" onclick="runTask(event, '${widget.id}')" ${isRunning ? 'disabled' : ''}>
+            ${isRunning ? '&#10227; Running...' : '&#9654; Run'}
+          </button>
+          <span>${formatTime(data.updated)}</span>
+          <span class="dot dot-${freshness}"></span>
+        </div>
+      </div>
+      <div class="card-body">
+        ${content
+          ? marked.parse(content)
+          : '<div class="empty-state">Waiting for first run...</div>'
+        }
+      </div>
+    </div>
+  `;
+}
+
+function toggleSection(name) {
+  const header = event.currentTarget;
+  const grid = document.getElementById(`${name}Grid`);
+  header.classList.toggle('collapsed');
+  grid.classList.toggle('collapsed');
+  collapsedSections[name] = header.classList.contains('collapsed');
+  localStorage.setItem('collapsedSections', JSON.stringify(collapsedSections));
+}
+
+function renderAll() {
+  document.getElementById('dailyGrid').innerHTML = WIDGETS.daily.map(renderCard).join('');
+  document.getElementById('intelGrid').innerHTML = WIDGETS.intel.map(renderCard).join('');
+  document.getElementById('weeklyGrid').innerHTML = WIDGETS.weekly.map(renderCard).join('');
+
+  // Restore section collapsed state
+  ['daily', 'intel', 'weekly'].forEach(name => {
+    const header = document.getElementById(`header-${name}`);
+    const grid = document.getElementById(`${name}Grid`);
+    if (collapsedSections[name]) {
+      header.classList.add('collapsed');
+      grid.classList.add('collapsed');
+    } else {
+      header.classList.remove('collapsed');
+      grid.classList.remove('collapsed');
+    }
+  });
+
+  updateStatusCounts();
+  renderInsights();
+}
+
+function renderInsights() {
+  const grid = document.getElementById('insightsGrid');
+
+  if (insightsAnalyzing) {
+    grid.innerHTML = '<div class="insights-loading">&#9670; Analyzing intelligence data...</div>';
+    return;
+  }
+
+  if (insightsData && insightsData.insights && insightsData.insights.length > 0) {
+    const tagClasses = { 'action': 'tag-action', 'watch': 'tag-watch', 'threat': 'tag-threat' };
+    grid.innerHTML = insightsData.insights.slice(0, 3).map((insight, i) => `
+      <div class="insight-card">
+        <div class="insight-number">Insight ${i + 1}</div>
+        <div class="insight-headline">${insight.headline}</div>
+        <div class="insight-analysis">${insight.analysis}</div>
+        <span class="insight-tag ${tagClasses[insight.tag] || 'tag-action'}">${insight.tag_label || insight.tag}</span>
+      </div>
+    `).join('');
+    return;
+  }
+
+  // Check if we have any intel data
+  const hasIntel = INTEL_WIDGETS.some(id => widgetData[id]?.content);
+  if (hasIntel) {
+    grid.innerHTML = '<div class="insights-empty">Intel data available. Click "Analyze Intel" to surface top insights.</div>';
+  } else {
+    grid.innerHTML = '<div class="insights-empty">Run intel scans first, then click "Analyze Intel" to surface top insights.</div>';
+  }
+}
+
+async function analyzeInsights() {
+  if (insightsAnalyzing) return;
+
+  // Gather all intel content (exclude email, chat, clickup)
+  const intelContent = INTEL_WIDGETS
+    .map(id => widgetData[id]?.content)
+    .filter(Boolean)
+    .join('\n\n---\n\n');
+
+  if (!intelContent) {
+    alert('No intel data available yet. Run some intel scans first.');
+    return;
+  }
+
+  insightsAnalyzing = true;
+  document.getElementById('btnAnalyze').classList.add('running');
+  document.getElementById('btnAnalyze').innerHTML = '<span>&#10227;</span> Analyzing...';
+  renderInsights();
+
+  try {
+    const resp = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: intelContent }),
+    });
+    if (resp.ok) {
+      // Poll for results
+      pollForInsights();
+    } else {
+      const data = await resp.json();
+      alert(data.error || 'Analysis failed');
+      insightsAnalyzing = false;
+      renderInsights();
+    }
+  } catch (e) {
+    alert('Server not reachable.');
+    insightsAnalyzing = false;
+    renderInsights();
+  }
+}
+
+function pollForInsights() {
+  const startTime = Date.now();
+  const interval = setInterval(async () => {
+    try {
+      const resp = await fetch(DATA_DIR + 'top-insights.json?t=' + Date.now());
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.updated && data.insights && data.insights.length > 0) {
+          // Accept if file was modified after we started analyzing
+          const fileTime = new Date(data.updated).getTime();
+          const prevTime = insightsData ? new Date(insightsData.updated).getTime() : 0;
+          if (fileTime > prevTime || (Date.now() - startTime) > 30000) {
+            insightsData = data;
+            insightsAnalyzing = false;
+            clearInterval(interval);
+            document.getElementById('btnAnalyze').classList.remove('running');
+            document.getElementById('btnAnalyze').innerHTML = '<span>&#9670;</span> Analyze Intel';
+            renderInsights();
+          }
+        }
+      }
+    } catch (e) {}
+  }, 5000);
+
+  // Timeout after 5 minutes
+  setTimeout(() => {
+    if (insightsAnalyzing) {
+      clearInterval(interval);
+      insightsAnalyzing = false;
+      // Try loading whatever exists
+      fetch(DATA_DIR + 'top-insights.json?t=' + Date.now())
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data) insightsData = data; })
+        .finally(() => {
+          document.getElementById('btnAnalyze').classList.remove('running');
+          document.getElementById('btnAnalyze').innerHTML = '<span>&#9670;</span> Analyze Intel';
+          renderInsights();
+        });
+    }
+  }, 300000);
+}
+
+function updateStatusCounts() {
+  const all = [...WIDGETS.daily, ...WIDGETS.intel, ...WIDGETS.weekly];
+  let green = 0, yellow = 0, red = 0, none = 0;
+
+  all.forEach(w => {
+    const f = getFreshness((widgetData[w.id] || {}).updated);
+    if (f === 'green') green++;
+    else if (f === 'yellow') yellow++;
+    else if (f === 'red') red++;
+    else none++;
+  });
+
+  document.getElementById('statusCounts').innerHTML = `
+    ${green ? `<span class="status-count"><span class="dot dot-green"></span>${green} fresh</span>` : ''}
+    ${yellow ? `<span class="status-count"><span class="dot dot-yellow"></span>${yellow} stale</span>` : ''}
+    ${red ? `<span class="status-count"><span class="dot dot-red"></span>${red} old</span>` : ''}
+    ${none ? `<span class="status-count"><span class="dot dot-gray"></span>${none} pending</span>` : ''}
+  `;
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric'
+  }) + ' \u00B7 ' + now.toLocaleTimeString('en-US', {
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+async function fetchWidget(widget) {
+  try {
+    const resp = await fetch(DATA_DIR + widget.file + '?t=' + Date.now());
+    if (resp.ok) {
+      widgetData[widget.id] = await resp.json();
+    }
+  } catch (e) {}
+}
+
+async function refreshAll() {
+  const all = [...WIDGETS.daily, ...WIDGETS.intel, ...WIDGETS.weekly];
+  await Promise.all(all.map(fetchWidget));
+  // Also fetch existing insights
+  try {
+    const resp = await fetch(DATA_DIR + 'top-insights.json?t=' + Date.now());
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data && data.insights && data.insights.length > 0) {
+        insightsData = data;
+      }
+    }
+  } catch (e) {}
+  renderAll();
+}
+
+async function runTask(event, widgetId) {
+  event.stopPropagation();
+  if (runningTasks.has(widgetId)) return;
+
+  try {
+    const resp = await fetch(`/api/run/${widgetId}`, { method: 'POST' });
+    const data = await resp.json();
+    if (resp.ok) {
+      runningTasks.add(widgetId);
+      renderAll();
+      pollForCompletion(widgetId);
+    } else {
+      alert(data.error || 'Failed to start task');
+    }
+  } catch (e) {
+    alert('Server not reachable. Is the dashboard server running?');
+  }
+}
+
+function pollForCompletion(widgetId) {
+  const interval = setInterval(async () => {
+    try {
+      const resp = await fetch('/api/status');
+      const data = await resp.json();
+      const stillRunning = new Set(data.running);
+
+      if (!stillRunning.has(widgetId)) {
+        runningTasks.delete(widgetId);
+        clearInterval(interval);
+        const allWidgets = [...WIDGETS.daily, ...WIDGETS.intel, ...WIDGETS.weekly];
+        const widget = allWidgets.find(w => w.id === widgetId);
+        if (widget) await fetchWidget(widget);
+        renderAll();
+      }
+    } catch (e) {}
+  }, 10000);
+}
+
+// Init
+updateClock();
+setInterval(updateClock, 10000);
+refreshAll();
+setInterval(refreshAll, 300000);
+</script>
+</body>
+</html>

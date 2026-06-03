@@ -1,0 +1,22 @@
+# --- secrets & environment ---
+.env
+.env.*
+!.env.example
+
+# --- python ---
+.venv/
+__pycache__/
+*.pyc
+
+# --- node / os / logs ---
+node_modules/
+.DS_Store
+*.log
+
+# --- runtime / private data (NEVER publish) ---
+data/dashboard-server.log
+data/reminders.json
+data/dashboard/gmail-digest.json
+data/dashboard/gchat-digest.json
+data/dashboard/clickup-morning.json
+data/dashboard/clickup-eod.json

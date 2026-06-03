@@ -1,21 +1,21 @@
 {
-  "updated": "2026-04-06T00:00:00Z",
+  "updated": "2026-06-03T09:30:10Z",
   "insights": [
     {
-      "headline": "Japan AI Governance Mark: Gate to $180K Enterprise Market",
-      "analysis": "Japan's AI Governance Mark certification (launching 2026) is required for government procurement and creates instant credibility with Japanese enterprises. With Japan's innovation-first AI Promotion Act now enforced and 60% of companies deploying GenAI, NotVerify must pursue JIPDEC certification immediately to unlock access to 180K+ enterprises and government Gennai project partnerships. The regulatory requirement for explainability (XAI) perfectly validates NotVerify's Glass Box architecture as a compliance solution.",
+      "headline": "EU AI Act High-Risk Delayed to 2027 — Pivot the Compliance Pitch",
+      "analysis": "The Digital Omnibus (May 7, 2026) deferred Annex III high-risk obligations to Dec 2, 2027, killing the 'August 2026 enforcement' urgency in prior briefings. But AI-content transparency/watermarking still lands Dec 2, 2026. Retire the deadline-scramble messaging and reposition NotVerify around the live Dec-2026 transparency hook plus continuous audit-readiness — ship AI-generated-translation labeling and audit export into Q3 GTM.",
       "tag": "action",
       "tag_label": "Take Action"
     },
     {
-      "headline": "EasyTranslate Roll-Up Threatens Japan LSP Acquisition Window",
-      "analysis": "European competitor EasyTranslate is executing aggressive M&A strategy—acquiring traditional translation providers with deep client relationships and migrating them to centralized AI platforms. Combined with OpenAI's ChatGPT Translate launch (Jan 2026), the translation market is under siege from both consolidators and tech giants. NotVerify must accelerate Japanese LSP acquisitions before EasyTranslate enters Japan and position as the essential QA layer that sits on top of any translation engine (including ChatGPT).",
+      "headline": "Rivals Are Commoditizing the 'Translate-Then-Verify' Wedge",
+      "analysis": "Smartling launched an automated LQA Agent, Lilt added first-party AI QA plus the autonomous 'LILT Assist' operator, and Lingo.dev v1 shipped an independent-reviewer QA architecture — all productizing NotVerify's core thesis, but grading their own output. Defend hard on what they can't credibly offer: independent, vendor-neutral, auditable Glass-Box trust scoring that sits over any engine. Lead sales with 'don't let the translator grade its own homework.'",
       "tag": "threat",
       "tag_label": "Emerging Threat"
     },
     {
-      "headline": "95% of Enterprises Shifting to Multi-Provider Translation Strategy",
-      "analysis": "47.4% of enterprises now use multiple AI translation providers, 65.8% demand TMS integration, and 75% plan to deploy AI agents by end of 2026. This represents massive market churn and validates NotVerify's positioning as translation QA middleware. Enterprises don't trust single providers—they need orchestration, trust scoring, and compliance across multiple engines. Perfect timing to capture market share as legacy translation platforms lose grip.",
+      "headline": "MCP/A2A Now a Procurement Gate — and a Tuck-In Window Is Open",
+      "analysis": "Lilt shipped an industry-first MCP server + A2A integration, and the protocols are consolidating under the Linux Foundation (June spec adds recursive sub-agents) — MCP/A2A-native is becoming table stakes to stay in enterprise agent stacks. Ship NotVerify as an invokable QA sub-agent now. In parallel, regulation-aligned explainability tuck-ins (Iridius compliance-by-design, Bering Lab, Japan's ROZETTA) are reachable accelerants for the Glass Box roadmap.",
       "tag": "watch",
       "tag_label": "Watch Closely"
     }
